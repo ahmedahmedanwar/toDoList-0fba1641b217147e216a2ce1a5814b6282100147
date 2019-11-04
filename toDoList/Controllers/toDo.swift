@@ -12,7 +12,9 @@ class toDo: UITableViewController {
     
     var dolist = [Items]()
     let defaults = UserDefaults.standard
-
+    let dataFilepath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
@@ -30,10 +32,16 @@ class toDo: UITableViewController {
         newItem3.title = "Running"
         dolist.append(newItem3)
         
-        if let items = defaults.array(forKey: "dolist") as? [Items]{
-           dolist = items
-        }
+        
+        
+    
+        
+//        if let items = defaults.array(forKey: "dolist") as? [Items]{
+//           dolist = items
+//        }
     }
+    
+    // Mark DataSource Method
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return dolist.count
@@ -55,13 +63,14 @@ class toDo: UITableViewController {
         return cell
     }
     
+    //Mark Delegate method
+    
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
-        tableView.deselectRow(at: indexPath, animated: true)
         dolist[indexPath.row].done = !dolist[indexPath.row].done
+        tableView.deselectRow(at: indexPath, animated: true)
         
-        tableView.reloadData()
-        
+        saveditems()
     }
 
     
@@ -77,7 +86,10 @@ class toDo: UITableViewController {
             newItem.title = textfield.text!
 
             self.dolist.append(newItem)
-            self.defaults.set(self.dolist, forKey: "dolist")
+            
+   //         self.defaults.set(self.dolist, forKey: "dolist")
+                
+            self.saveditems()
             self.tableView.reloadData()
         
         }
@@ -91,6 +103,24 @@ class toDo: UITableViewController {
         present(alert,animated: true,completion: nil)
     }
     
+    func saveditems (){
+        
+        let encoder = PropertyListEncoder()
+
+        do{
+         let data = try encoder.encode(dolist)
+             
+             try data.write(to: dataFilepath!)
+             
+         }catch{
+             
+             print("error \(error)")
+         }
+         
+        tableView.reloadData()
+        
+    }
+
 
 }
 
