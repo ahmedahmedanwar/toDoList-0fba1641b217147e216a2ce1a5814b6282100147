@@ -19,20 +19,21 @@ class toDo: UITableViewController {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
        
+//
+//        let newItem1 = Items()
+//        newItem1.title = "Sport"
+//        dolist.append(newItem1)
+//
+//        let newItem2 = Items()
+//        newItem2.title = "Shopping"
+//        dolist.append(newItem2)
+//
+//        let newItem3 = Items()
+//        newItem3.title = "Running"
+//        dolist.append(newItem3)
         
-        let newItem1 = Items()
-        newItem1.title = "Sport"
-        dolist.append(newItem1)
-        
-        let newItem2 = Items()
-        newItem2.title = "Shopping"
-        dolist.append(newItem2)
-        
-        let newItem3 = Items()
-        newItem3.title = "Running"
-        dolist.append(newItem3)
-        
-        
+        print(dataFilepath)
+            loadData()
         
     
         
@@ -121,6 +122,21 @@ class toDo: UITableViewController {
         
     }
 
-
+    func loadData(){
+        
+ 
+            if let data = try? Data(contentsOf: dataFilepath!){
+                
+            let decoder = PropertyListDecoder ()
+               
+                do{
+                    
+                    dolist = try decoder.decode([Items].self, from: data)
+                    
+                }catch{
+            print("error \(error)")
+        }
+        }
+}
 }
 
