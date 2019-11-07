@@ -12,36 +12,37 @@ import CoreData
 class toDo: UITableViewController {
     
     var dolist = [Items]()
-  //  let defaults = UserDefaults.standard
-  //  let dataFilepath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
+    //  let defaults = UserDefaults.standard
+    //  let dataFilepath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
     
     let context = (UIApplication.shared.delegate as! AppDelegate ).persistentContainer.viewContext
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
-       
-//
-//        let newItem1 = Items()
-//        newItem1.title = "Sport"
-//        dolist.append(newItem1)
-//
-//        let newItem2 = Items()
-//        newItem2.title = "Shopping"
-//        dolist.append(newItem2)
-//
-//        let newItem3 = Items()
-//        newItem3.title = "Running"
-//        dolist.append(newItem3)
         
-     //   print(dataFilepath)
-           loadData()
+        //
+        //        let newItem1 = Items()
+        //        newItem1.title = "Sport"
+        //        dolist.append(newItem1)
+        //
+        //        let newItem2 = Items()
+        //        newItem2.title = "Shopping"
+        //        dolist.append(newItem2)
+        //
+        //        let newItem3 = Items()
+        //        newItem3.title = "Running"
+        //        dolist.append(newItem3)
         
-    
+        //   print(dataFilepath)
         
-//        if let items = defaults.array(forKey: "dolist") as? [Items]{
-//           dolist = items
-//        }
+
+            
+            loadData()
+        
+        //        if let items = defaults.array(forKey: "dolist") as? [Items]{
+        //           dolist = items
+        //        }
     }
     
     // Mark DataSource Method
@@ -51,7 +52,7 @@ class toDo: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-      
+        
         //  let cell = UITableViewCell(style: .default, reuseIdentifier: "doCell")
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "doCell", for: indexPath)
@@ -61,7 +62,7 @@ class toDo: UITableViewController {
         cell.textLabel?.text = item.title
         
         cell.accessoryType = item.done ?  .checkmark :  .none
-
+        
         
         return cell
     }
@@ -70,12 +71,16 @@ class toDo: UITableViewController {
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
+        //Mark -> deleting raws befor ui editing
+        //        context.delete(dolist[indexPath.row])
+        //        dolist.remove(at: indexPath.row)
+        
         dolist[indexPath.row].done = !dolist[indexPath.row].done
         tableView.deselectRow(at: indexPath, animated: true)
         
         saveditems()
     }
-
+    
     
     @IBAction func addPressed(_ sender: UIBarButtonItem) {
         
@@ -91,11 +96,11 @@ class toDo: UITableViewController {
             newItem.done = false
             self.dolist.append(newItem)
             
-   //         self.defaults.set(self.dolist, forKey: "dolist")
-                
+            //         self.defaults.set(self.dolist, forKey: "dolist")
+            
             self.saveditems()
             self.tableView.reloadData()
-        
+            
         }
         
         alert.addTextField { (alerttextfield) in
@@ -110,34 +115,70 @@ class toDo: UITableViewController {
     func saveditems (){
         
         do{
-        
+            
             try context.save()
-             
-         }catch{
-             
-             print("error Saving context")
-         }
-         
+            
+        }catch{
+            
+            print("error Saving context")
+        }
+        
         tableView.reloadData()
         
     }
-
-    func loadData(){
-
-
-        let request:NSFetchRequest <Items> = Items.fetchRequest()
+    
+    func loadData(with request: NSFetchRequest <Items> = Items.fetchRequest()){
+        
+        
+    //    let request:NSFetchRequest <Items> = Items.fetchRequest()
         
         do{
             
             dolist =   try context.fetch(request)
-
+            
         }catch {
             
             print("Error fetching data from request ")
         }
         
-        
-        }
+        tableView.reloadData()
+
+    }
 }
 
-//mark
+//Mark SearchBar Method
+
+extension toDo :UISearchBarDelegate {
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        
+        let request :NSFetchRequest<Items> = Items.fetchRequest()
+        
+        request.predicate  = NSPredicate(format: "title CONTAINS [cd] %@ ", searchBar.text!)
+        
+        request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
+        
+        
+        //-> the below method instead of  do catch and tableView.reloadData()
+        
+        
+        loadData(with: request)
+        
+        
+    }
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchBar.text?.count == 0 {
+            
+            loadData()
+            DispatchQueue.main.async {
+                searchBar.resignFirstResponder()
+            }
+        }
+    }
+}
+
+
+
+
+
