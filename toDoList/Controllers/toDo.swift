@@ -14,6 +14,14 @@ class toDo: UITableViewController {
     var dolist = [Items]()
     //  let defaults = UserDefaults.standard
     //  let dataFilepath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
+    var   selctedCategory : Category? {
+        
+        didSet{
+            
+            loadData()
+        }
+        
+    }
     
     let context = (UIApplication.shared.delegate as! AppDelegate ).persistentContainer.viewContext
     
@@ -36,13 +44,14 @@ class toDo: UITableViewController {
         
         //   print(dataFilepath)
         
-
-            
-            loadData()
+        
+        
+        
         
         //        if let items = defaults.array(forKey: "dolist") as? [Items]{
         //           dolist = items
         //        }
+        
     }
     
     // Mark DataSource Method
@@ -94,12 +103,13 @@ class toDo: UITableViewController {
             let newItem =  Items(context: self.context)
             newItem.title = textfield.text!
             newItem.done = false
+            newItem.parentCategory = self.selctedCategory
             self.dolist.append(newItem)
             
             //         self.defaults.set(self.dolist, forKey: "dolist")
             
             self.saveditems()
-            self.tableView.reloadData()
+//            self.tableView.reloadData()
             
         }
         
@@ -127,11 +137,18 @@ class toDo: UITableViewController {
         
     }
     
-    func loadData(with request: NSFetchRequest <Items> = Items.fetchRequest()){
+    func loadData(with request: NSFetchRequest <Items> = Items.fetchRequest(), predicate : NSPredicate? = nil){
         
+        let categoryPredicate = NSPredicate(format: "parentCategory.name MATCHES %@ ", selctedCategory!.name!)
         
-    //    let request:NSFetchRequest <Items> = Items.fetchRequest()
-        
+        if let addtionalPredicate = predicate {
+            
+            request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [categoryPredicate , addtionalPredicate])
+            
+        }else{
+            request.predicate = categoryPredicate
+        }
+
         do{
             
             dolist =   try context.fetch(request)
@@ -142,7 +159,7 @@ class toDo: UITableViewController {
         }
         
         tableView.reloadData()
-
+        
     }
 }
 
@@ -152,19 +169,14 @@ extension toDo :UISearchBarDelegate {
     
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         
-        let request :NSFetchRequest<Items> = Items.fetchRequest()
-        
-        request.predicate  = NSPredicate(format: "title CONTAINS [cd] %@ ", searchBar.text!)
-        
-        request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
-        
-        
-        //-> the below method instead of  do catch and tableView.reloadData()
-        
-        
-        loadData(with: request)
-        
-        
+       let request : NSFetchRequest<Items> = Items.fetchRequest()
+
+               let predicate = NSPredicate(format: "title CONTAINS[cd] %@", searchBar.text!)
+
+               request.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
+
+               loadData(with: request, predicate: predicate)
+    
     }
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
